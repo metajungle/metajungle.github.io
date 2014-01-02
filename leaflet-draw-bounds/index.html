@@ -46,25 +46,39 @@
     
     map.on('draw:created', function (e) {
         var type = e.layerType,
-            layer = e.layer, 
-            bounds = layer.getBounds();
+            layer = e.layer;
 
         if (type === 'rectangle') {
-          var nw = bounds.getNorthWest(); 
-          var se = bounds.getSouthEast(); 
-          
-          var msg = '<strong>Bounds (ulx, uly, lrx, lry):</strong><br />' + 
-            nw.lng + ' ' + nw.lat + ' ' + 
-            se.lng + ' ' + se.lat + '<br /><br />' + 
-            '<strong>GeoJSON</strong><br />' + 
-            JSON.stringify(layer.toGeoJSON());
-          
-          layer.bindPopup(msg);
+          bindBoundsPopup(layer);
         }
 
         // Do whatever else you need to. (save to db, add to map etc)
         drawnItems.addLayer(layer);
-    });    
+    }); 
+    
+    map.on('draw:edited', function (e) {
+        var layers = e.layers;
+        layers.eachLayer(function (layer) {
+            bindBoundsPopup(layer);
+        });
+    });
+    
+    function bindBoundsPopup(layer) {
+      var bounds = layer.getBounds();
+      var nw = bounds.getNorthWest(); 
+      var se = bounds.getSouthEast(); 
+
+      layer.unbindPopup();
+      
+      var msg = '<strong>Bounds (ulx, uly, lrx, lry):</strong><br />' + 
+        nw.lng + ' ' + nw.lat + ' ' + 
+        se.lng + ' ' + se.lat + '<br /><br />' + 
+        '<strong>GeoJSON</strong><br />' + 
+        JSON.stringify(layer.toGeoJSON());
+      
+      layer.bindPopup(msg);
+    }
+        
   });
   -->
   </script>
