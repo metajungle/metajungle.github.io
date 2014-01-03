@@ -105,8 +105,12 @@
       $('#modal-geojson').modal({
         show: true
       });
-      $("#text-geojson").focus();
     });
+    
+    // focus the GeoJSON textfield when the modal is shown
+    $('#modal-geojson').on('shown.bs.modal', function(e) {
+      $("#text-geojson").focus();
+    })
     
     $('#btn-add-feature').click(function() {
       var feature, 
