@@ -6,19 +6,41 @@
   <link rel="stylesheet" 
         href="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.css" />
 
-  <link rel="stylesheet" 
-        href="static/leaflet.draw.css" />
+  <link rel="stylesheet" href="static/leaflet.draw.css" />
+
+  <link rel="stylesheet" href="static/bootstrap-3.0.3/css/bootstrap.min.css" />
         
-  <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+  <script src="static/jquery-1.10.2.min.js"></script>
   <script src="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.js?2"></script>
     
   <script src="static/leaflet.draw.js"></script>   
 
+  <script src="static/bootstrap-3.0.3/js/bootstrap.min.js"></script>   
+
   <script type="text/javascript">
   <!--
+  
+  function bindBoundsPopup(layer) {
+    var bounds = layer.getBounds();
+    var nw = bounds.getNorthWest(); 
+    var se = bounds.getSouthEast(); 
+
+    layer.unbindPopup();
+    
+    var msg = '<strong>Bounds (ulx, uly, lrx, lry):</strong><br />' + 
+      nw.lng + ' ' + nw.lat + ' ' + 
+      se.lng + ' ' + se.lat + '<br /><br />' + 
+      '<strong>GeoJSON</strong><br />' + 
+      JSON.stringify(layer.toGeoJSON());
+    
+    layer.bindPopup(msg);
+  }  
+  
   $(function() {
     var map, 
-        drawnItems;
+        drawnItems, 
+        drawControl, 
+        geoJsonControl;
 
     map = L.map('map').setView([38.34243, -75.081596], 13);
 
@@ -31,7 +53,7 @@
     map.addLayer(drawnItems);
 
     // Initialise the draw control and pass it the FeatureGroup of editable layers
-    var drawControl = new L.Control.Draw({
+    drawControl = new L.Control.Draw({
         draw: {
             polyline: false, 
             polygon: false,
@@ -63,22 +85,55 @@
         });
     });
     
-    function bindBoundsPopup(layer) {
-      var bounds = layer.getBounds();
-      var nw = bounds.getNorthWest(); 
-      var se = bounds.getSouthEast(); 
-
-      layer.unbindPopup();
-      
-      var msg = '<strong>Bounds (ulx, uly, lrx, lry):</strong><br />' + 
-        nw.lng + ' ' + nw.lat + ' ' + 
-        se.lng + ' ' + se.lat + '<br /><br />' + 
-        '<strong>GeoJSON</strong><br />' + 
-        JSON.stringify(layer.toGeoJSON());
-      
-      layer.bindPopup(msg);
-    }
-        
+    geoJsonControl = L.control({ 'position' : 'topleft'});
+    
+    geoJsonControl.onAdd = function (map) {
+      // create a div with a class "info"
+      this._div = L.DomUtil.create('div', 'control'); 
+      this._div.title = 'Add GeoJSON feature';
+      this.update();
+      return this._div;
+    };
+    
+    // method that we will use to update the control based on feature properties passed
+    geoJsonControl.update = function (props) {
+    };
+    
+    geoJsonControl.addTo(map);
+    
+    $('.control').click(function() {
+      $('#modal-geojson').modal({
+        show: true
+      });
+      $("#text-geojson").focus();
+    });
+    
+    $('#btn-add-feature').click(function() {
+      var feature, 
+          geoJsonLayer;  
+	    try {
+	      feature = JSON.parse($("#text-geojson").val());
+        geoJsonLayer = L.geoJson(feature, {
+          onEachFeature: function (feature, layer) {
+            var r = L.rectangle(layer.getBounds());
+            r.addTo(drawnItems);
+            bindBoundsPopup(r);
+          }
+        });
+        // add layer 
+        // geoJsonLayer.addTo(drawnItems);
+        // fit to layer 
+        map.fitBounds(geoJsonLayer.getBounds());
+        // clear error message
+        $("#modal-error").text('');
+        // close modal
+        $('#modal-geojson').modal('hide');
+	    } catch (e) {
+        $("#modal-error").text('Not valid JSON: ' + e);
+	      console.log('Could not parse JSON: ' + e);
+	    }
+    });
+    
   });
   -->
   </script>
@@ -94,12 +149,49 @@
       height: 100%;
       background: #000;
   }  
+  
+  .control {
+      width: 26px;
+      height: 26px;
+      padding: 0px 0px;
+      
+      cursor: pointer;
+      
+      background-color: #fff;
+      background-image: url('static/images/icon-geojson.png');
+      background-repeat: no-repeat;
+      border: 1px solid #999;
+      border-color: rgba(0,0,0,0.4);
+      border-radius: 3px;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.65); 
+  }
+  
   </style>
   
 </head>
 <body>
 
   <div id="map"></div>
+  
+  <div class="modal fade" id="modal-geojson">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title">Add GeoJSON feature</h4>
+        </div>
+        <div class="modal-body">
+          <p>Please enter a single valid GeoJSON polygon feature</p>
+          <textarea id="text-geojson" rows="8" class="form-control"></textarea>
+          <p id="modal-error" class="text-danger">&nbsp;</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="btn-add-feature">Add feature</button>
+        </div>
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div><!-- /.modal -->  
   
 </body>
 </html>
