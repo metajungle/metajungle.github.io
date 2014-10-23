@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Leaflet Draw - Bounds</title>
+  
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.css" />
+
+    <script src="../static/jquery-1.10.2.min.js"></script>
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.js?2"></script>
+    
+    <style type="text/css">
+    html, body {
+        height: 100%;
+        margin: 0px;
+    }
+
+    #map {
+        height: 100%;
+        background: #000;
+    }
+  
+    </style>
+    
+    
+    <script type="text/javascript">
+    <!--
+  
+    /**
+     * On document load 
+     *
+     */
+    $(function() {
+        
+        // OSM
+        var base = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+        });
+
+        // Worchester, MD 
+        var tilesMdWorcester = L.tileLayer('http://tiles.metajungle.net/dem/md_worcester/{z}/{x}/{y}.png', {
+            attribution: 'copyright'
+        });
+
+        // DEM tiles 
+        var tilesSatellite = L.tileLayer('http://tiles.metajungle.net/satellite/{z}/{x}/{y}.png', {
+            attribution: 'copyright'
+        });
+
+        // create map
+        var map = L.map('map', {
+            center: [38.3361579, -75.0947386], 
+            zoom: 10,
+            minZoom: 10, 
+            maxZoom: 18, 
+            layers: [base, tilesMdWorcester] 
+        });
+
+        // create controls
+        var baseMaps = {
+            "Worcester, MD": tilesMdWorcester,
+            "Satellite": tilesSatellite
+        };
+
+        L.control.layers(baseMaps).addTo(map);
+
+    });
+    -->
+    </script>
+  
+</head>
+<body>
+
+    <div id="map"></div>
+  
+</body>
+</html>
